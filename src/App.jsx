@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Spline from '@splinetool/react-spline'
+import { Menu, X, Sun, Moon } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 
 function Pill({ children }) {
   return (
@@ -67,13 +69,30 @@ const testimonials = [
 ]
 
 function App() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [darkMode, setDarkMode] = useState(true)
+
+  useEffect(() => {
+    const root = document.documentElement
+    if (darkMode) root.classList.add('dark')
+    else root.classList.remove('dark')
+  }, [darkMode])
+
+  useEffect(() => {
+    const handler = () => setMenuOpen(false)
+    window.addEventListener('hashchange', handler)
+    return () => window.removeEventListener('hashchange', handler)
+  }, [])
+
   return (
     <div id="top" className="min-h-screen bg-white text-gray-900 dark:bg-[#0b0b0b] dark:text-white selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
       {/* Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-20">
+      <header className="fixed top-0 left-0 right-0 z-40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="h-16 flex items-center justify-between">
             <a href="#top" className="font-semibold tracking-tight">Ava Lane — Copy</a>
+
+            {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-6 text-sm">
               <a href="#work" className="opacity-80 hover:opacity-100 transition">Work</a>
               <a href="#services" className="opacity-80 hover:opacity-100 transition">Services</a>
@@ -81,12 +100,84 @@ function App() {
               <a href="#testimonials" className="opacity-80 hover:opacity-100 transition">Kind words</a>
               <a href="#contact" className="opacity-80 hover:opacity-100 transition">Contact</a>
             </nav>
-            <a href="#contact" className="hidden sm:inline-flex items-center rounded-full border border-black/10 dark:border-white/20 px-4 py-2 text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition">
-              Book a intro call
-            </a>
+
+            <div className="flex items-center gap-2">
+              <button
+                aria-label="Toggle theme"
+                onClick={() => setDarkMode((v) => !v)}
+                className="inline-flex items-center rounded-full border border-black/10 dark:border-white/20 p-2 text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition"
+              >
+                {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <a href="#contact" className="hidden sm:inline-flex items-center rounded-full border border-black/10 dark:border-white/20 px-4 py-2 text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition">
+                Book an intro call
+              </a>
+              <button className="md:hidden inline-flex items-center justify-center rounded-full border border-black/10 dark:border-white/20 p-2" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+                <Menu size={18} />
+              </button>
+            </div>
           </div>
         </div>
+        {/* subtle top gradient & blur */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/80 to-transparent dark:from-[#0b0b0b]/80 backdrop-blur-sm" />
       </header>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {menuOpen && (
+          <motion.div
+            className="fixed inset-0 z-50 bg-white/80 dark:bg-black/70 backdrop-blur-xl"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              className="max-w-6xl mx-auto px-4 sm:px-6"
+            >
+              <div className="h-16 flex items-center justify-between">
+                <a href="#top" className="font-semibold tracking-tight">Ava Lane — Copy</a>
+                <button className="inline-flex items-center justify-center rounded-full border border-black/10 dark:border-white/20 p-2" onClick={() => setMenuOpen(false)} aria-label="Close menu">
+                  <X size={18} />
+                </button>
+              </div>
+              <div className="py-6">
+                <div className="flex flex-col text-lg divide-y divide-black/10 dark:divide-white/10">
+                  {[
+                    { href: '#work', label: 'Work' },
+                    { href: '#services', label: 'Services' },
+                    { href: '#about', label: 'About' },
+                    { href: '#testimonials', label: 'Kind words' },
+                    { href: '#contact', label: 'Contact' },
+                  ].map((l) => (
+                    <a
+                      key={l.href}
+                      href={l.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="py-4 font-medium hover:opacity-100 opacity-90"
+                    >
+                      {l.label}
+                    </a>
+                  ))}
+                </div>
+                <div className="mt-6 flex gap-3">
+                  <a href="#contact" onClick={() => setMenuOpen(false)} className="inline-flex items-center rounded-full bg-black text-white px-5 py-3 text-sm hover:opacity-90 dark:bg-white dark:text-black transition">Book an intro call</a>
+                  <button
+                    aria-label="Toggle theme"
+                    onClick={() => setDarkMode((v) => !v)}
+                    className="inline-flex items-center rounded-full border border-black/10 dark:border-white/20 px-4 py-3 text-sm hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition"
+                  >
+                    {darkMode ? 'Light mode' : 'Dark mode'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Hero with Spline cover */}
       <section className="relative h-[90vh] min-h-[600px] w-full overflow-hidden">
@@ -207,6 +298,11 @@ function App() {
       <footer className="py-10 text-center text-sm opacity-70">
         © {new Date().getFullYear()} Ava Lane. All rights reserved.
       </footer>
+
+      {/* Floating CTA */}
+      <a href="#contact" className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 inline-flex items-center gap-2 rounded-full bg-black text-white px-5 py-3 text-sm shadow-lg shadow-black/10 dark:shadow-white/10 hover:opacity-90 transition">
+        Let’s talk
+      </a>
     </div>
   )
 }
